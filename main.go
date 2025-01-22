@@ -41,15 +41,15 @@ type Todo struct {
 
 var (
 	todoStore = make(map[int]Todo)
-	mu        sync.Mutex
+	mu        sync.RWMutex
 )
 
 // Handler to get all todos
 func getAllTodos(w http.ResponseWriter, r *http.Request) {
-	mu.Lock()
-	defer mu.Unlock()
+	mu.RLock()
+	defer mu.RUnlock()
 
-	todos := make([]Todo, 0, len(todoStore))
+	todos := make([]Todo, 0)
 	for _, todo := range todoStore {
 		todos = append(todos, todo)
 	}
@@ -63,8 +63,8 @@ func getTodoByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	todoID := atoi(id)
-	mu.Lock()
-	defer mu.Unlock()
+	mu.RLock()
+	defer mu.RUnlock()
 
 	todo, exists := todoStore[todoID]
 	if !exists {
@@ -87,6 +87,11 @@ func createTodo(w http.ResponseWriter, r *http.Request) {
 	newTodo.ID = rand.Intn(1000) // Random ID assignment
 
 	mu.Lock()
+	if _, ok := todoStore[newTodo.ID]; ok {
+		http.Error(w, "try again, internal error", http.StatusInternalServerError)
+		return
+	}
+
 	todoStore[newTodo.ID] = newTodo
 	mu.Unlock()
 
