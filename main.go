@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
+	"log"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -25,8 +26,10 @@ func main() {
 	r.Put("/todos/{id}", updateTodo)
 	r.Delete("/todos/{id}", deleteTodo)
 
+	port := ":8080"
+	log.Printf("HTTP server is running at %s", port)
 	// Start server
-	http.ListenAndServe(":8080", r)
+	http.ListenAndServe(port, r)
 }
 
 type Todo struct {
